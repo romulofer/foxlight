@@ -15,7 +15,7 @@ O mesmo firmware serve as duas.
 >
 > | Parte | Situação |
 > | ----- | -------- |
-> | Firmware na D1 mini, em protoboard | tela, sensor e botões funcionando na primeira versão; o botão Modo (toque e toque longo) ainda não foi testado |
+> | Firmware na D1 mini, em protoboard | tela, sensor e botões funcionando na primeira versão; a tela nova ainda não foi gravada nela |
 > | Calibração contra um fotômetro de referência | **não feita**: não confie nas leituras para expor filme |
 > | Firmware na XIAO ESP32C6 | **só compilado**, nunca rodou na placa |
 > | Placas rev 1 e rev 2 | **nunca fabricadas**; passam no DRC, mas várias medidas de módulos são estimadas |
@@ -63,10 +63,10 @@ bateria (ver [Placa rev 1](#placa-rev-1)).
 | D5 | botão **Medir** |
 | D6 | botão **+** |
 | D7 | botão **−** |
-| D3 | botão **Modo** (Selecionar) |
+| D3 | botão **Selecionar** |
 | D4 | botão **Calcular** |
 
-Cada botão fica entre o pino e o GND, sem resistor. Não segure **Modo**
+Cada botão fica entre o pino e o GND, sem resistor. Não segure **Selecionar**
 nem **Calcular** ao ligar: D3 e D4 definem o modo de boot do ESP8266.
 
 Confira a ordem dos pinos na serigrafia de cada módulo. No OLED usado aqui é
@@ -77,13 +77,15 @@ Confira a ordem dos pinos na serigrafia de cada módulo. No OLED usado aqui é
 | Botão | Ação |
 | ----- | ---- |
 | Medir | faz uma leitura; segurando, mede continuamente |
-| Modo, toque (**Selecionar** na rev 1 e no guia da protoboard) | troca qual dos dois valores definidos será alterado |
-| Modo, segurando | escolhe a incógnita: tempo → abertura → ISO |
-| Calcular | o mesmo que segurar Modo (só existe com a D1 mini) |
-| + / − | altera o valor selecionado em 1/3 de stop; segurando, repete |
+| Calcular | escolhe a incógnita: tempo → abertura → ISO |
+| Selecionar (**OK** na rev 2) | troca qual dos dois valores definidos será alterado |
+| + / − (**►** / **◄** na rev 2) | altera o valor selecionado em 1/3 de stop; segurando, repete |
 
-Na tela, a linha invertida com `=` é a calculada e `>` marca a selecionada. A
-faixa de cima mostra lux e EV (ISO 100). Mudar um valor recalcula na hora com a
+![Telas do foxlight](hardware/imagens/rev2_tela.png)
+
+De cima para baixo: EV (ISO 100), lux e bateria; os dois valores definidos, com o
+selecionado destacado; o resultado em letras grandes; e a régua do valor
+selecionado, com o anterior e o próximo. Mudar um valor recalcula na hora com a
 última leitura. As configurações são salvas 2 s depois da última mudança.
 
 Resultados fora da escala aparecem como `<1.0`, `>64`, `<6`, `>25600` ou
@@ -207,7 +209,7 @@ Baterias de lítio podem pegar fogo se carregadas ou ligadas de forma errada.
 src/foxlight/     firmware (foxlight.ino), pinos (board.h), exposição e bateria
 test/             testes da matemática, rodam no PC
 docs/             guia de montagem na protoboard e documentação da rev 2
-tools/            scanner I2C, teste de botões, geradores dos desenhos e da caixa
+tools/            testes de bancada e geradores dos desenhos, da tela e da caixa
 hardware/         projetos KiCad, gerbers, caixa 3D, imagens e moldes 1:1
 ```
 

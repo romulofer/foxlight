@@ -155,9 +155,9 @@ Plugue o USB **sem apertar nenhum botão**. A tela deve mostrar **Aperte MEDIR**
 | Aperte | Deve acontecer |
 | ------ | -------------- |
 | MEDIR | aparecem a luz (`lx`), o `EV` e o resultado |
-| MAIS e MENOS | muda o valor marcado com `>` |
-| SELECIONAR | toque rápido: o `>` pula para outra linha; segurando, muda a linha com `=` |
-| CALCULAR | muda a linha que o aparelho calcula (a linha com `=`) |
+| MAIS e MENOS | muda o valor destacado (e a régua de baixo anda) |
+| SELECIONAR | o destaque pula para o outro valor |
+| CALCULAR | muda o que aparece grande no meio |
 
 ## Se não funcionar
 

@@ -17,6 +17,7 @@
 #include <BH1750.h>
 #include "exposure.h"
 #include "battery.h"
+#include "ui.h"
 
 // ── Configuração ─────────────────────────────────────────────────────────────
 #define CALIBRATION       1.0f  // multiplica o lux (ver README, "Calibração")
@@ -48,8 +49,6 @@ const Settings DEFAULTS = {
 
 Settings cfg;
 
-enum Reading { NOT_MEASURED, MEASURING, MEASURED, DARK, SATURATED, SENSOR_ERROR };
-
 Reading  reading = NOT_MEASURED;
 float    lux     = 0;
 bool     dirty   = false;
@@ -58,8 +57,6 @@ uint32_t usedAt  = 0;       // último toque em um botão
 int      batteryMv = 0;
 
 // Antes das funções: o Arduino gera os protótipos no topo.
-enum Press { NO_PRESS, SHORT_PRESS, LONG_PRESS };
-
 struct Button {
   uint8_t  pin;
   bool     repeat;
@@ -143,14 +140,6 @@ void readBattery() {
   for (int i = 0; i < 16; i++) sum += analogReadMilliVolts(PIN_BATTERY);
   batteryMv = sum / 16 * 2;   // divisor 1:2
 }
-
-// Ícone de 16x8 no canto da faixa de cima.
-void drawBattery() {
-  if (batteryMv < BATTERY_ABSENT_MV) return;
-  display.drawRect(112, 4, 14, 8, SSD1306_WHITE);
-  display.fillRect(126, 6, 2, 4, SSD1306_WHITE);
-  display.fillRect(114, 6, (batteryPercent(batteryMv) + 5) / 10, 4, SSD1306_WHITE);
-}
 #endif
 
 // ── Botões ───────────────────────────────────────────────────────────────────
@@ -160,24 +149,14 @@ void drawBattery() {
 #define REPEAT_DELAY_MS  500
 #define REPEAT_RATE_MS   150
 
-#define LONG_PRESS_MS    600
-
-enum {
-  BTN_MEASURE, BTN_PLUS, BTN_MINUS, BTN_SELECT,
-#if HAS_CALC_BUTTON
-  BTN_CALC,
-#endif
-  BTN_COUNT
-};
+enum { BTN_MEASURE, BTN_PLUS, BTN_MINUS, BTN_SELECT, BTN_CALC, BTN_COUNT };
 
 Button buttons[BTN_COUNT] = {
   { PIN_MEASURE, true,  HIGH, HIGH, 0, 0 },   // segurar = medição contínua
   { PIN_PLUS,    true,  HIGH, HIGH, 0, 0 },
   { PIN_MINUS,   true,  HIGH, HIGH, 0, 0 },
   { PIN_SELECT,  false, HIGH, HIGH, 0, 0 },
-#if HAS_CALC_BUTTON
   { PIN_CALC,    false, HIGH, HIGH, 0, 0 },
-#endif
 };
 
 bool buttonEvent(Button &b) {
@@ -200,74 +179,22 @@ bool buttonEvent(Button &b) {
   return false;
 }
 
-// Botão Modo: um toque curto vale ao soltar; segurando, vale como toque longo
-// uma única vez.
-Press modeEvent(Button &b) {
-  static bool     pending = false;
-  static uint32_t since   = 0;
-
-  if (buttonEvent(b)) { pending = true; since = millis(); }
-  if (!pending) return NO_PRESS;
-
-  if (b.stable == HIGH)                { pending = false; return SHORT_PRESS; }
-  if (millis() - since >= LONG_PRESS_MS) { pending = false; return LONG_PRESS; }
-  return NO_PRESS;
-}
-
 // ── Tela ─────────────────────────────────────────────────────────────────────
-// Faixa de cima (16 px): lux e EV. Abaixo, uma linha por campo. A calculada
-// aparece invertida com "=", a selecionada com ">".
 void draw() {
-  display.clearDisplay();
-  display.setTextSize(1);
-  display.setTextColor(SSD1306_WHITE);
-  display.setCursor(0, 4);
-
-  switch (reading) {
-    case NOT_MEASURED: display.print(F("Aperte MEDIR"));      break;
-    case MEASURING:    display.print(F("Medindo..."));        break;
-    case DARK:         display.print(F("Escuro demais"));     break;
-    case SENSOR_ERROR: display.print(F("Erro no sensor"));    break;
-    default:
-      if (reading == SATURATED) display.print('>');
-      display.print(F("lx "));
-      display.print(lux, lux < 10 ? 1 : 0);
-      display.setCursor(64, 4);
-      display.print(F("EV "));
-      display.print(ev100FromLux(lux), 1);
-  }
+  ScreenState state = {};
+  state.reading  = reading;
+  state.lux      = lux;
+  state.target   = cfg.target;
+  state.selected = cfg.selected;
+  for (int i = 0; i < FIELD_COUNT; i++) state.value[i] = cfg.value[i];
 #if HAS_BATTERY
-  drawBattery();
+  state.battery  = batteryMv < BATTERY_ABSENT_MV ? -1 : batteryPercent(batteryMv);
+#else
+  state.battery  = -1;
 #endif
 
-  static const char *const NAMES[FIELD_COUNT] = { "ISO", "f/", "T" };
-  display.setTextSize(2);
-
-  for (int i = 0; i < FIELD_COUNT; i++) {
-    int  y        = 17 + 16 * i;
-    bool computed = i == cfg.target;
-    char text[12]  = "--";
-
-    if (!computed) {
-      formatField(text, sizeof(text), (Field)i, cfg.value[i]);
-    } else if (reading == MEASURED || reading == SATURATED) {
-      int values[FIELD_COUNT] = { cfg.value[0], cfg.value[1], cfg.value[2] };
-      int ev = lroundf(3.0f * ev100FromLux(lux));
-      formatField(text, sizeof(text), (Field)i,
-                  solveExposure((Field)i, values, ev));
-    }
-
-    if (computed) display.fillRect(0, y - 1, 128, 16, SSD1306_WHITE);
-    display.setTextColor(computed ? SSD1306_BLACK : SSD1306_WHITE);
-
-    display.setCursor(1, y);
-    display.print(computed ? '=' : (i == cfg.selected ? '>' : ' '));
-    display.setCursor(15, y);
-    display.print(NAMES[i]);
-    display.setCursor(127 - 12 * strlen(text), y);
-    display.print(text);
-  }
-
+  display.clearDisplay();
+  drawScreen(display, state);
   display.display();
 }
 
@@ -374,23 +301,12 @@ void loop() {
   if (buttonEvent(buttons[BTN_PLUS]))  { adjust(+1); changed = true; }
   if (buttonEvent(buttons[BTN_MINUS])) { adjust(-1); changed = true; }
 
-  switch (modeEvent(buttons[BTN_SELECT])) {
-    case SHORT_PRESS:
-      cfg.selected = nextSettable(cfg.selected);
-      markDirty();
-      changed = true;
-      break;
-    case LONG_PRESS:
-      cycleTarget();
-      changed = true;
-      break;
-    case NO_PRESS:
-      break;
+  if (buttonEvent(buttons[BTN_SELECT])) {
+    cfg.selected = nextSettable(cfg.selected);
+    markDirty();
+    changed = true;
   }
-
-#if HAS_CALC_BUTTON
   if (buttonEvent(buttons[BTN_CALC]))  { cycleTarget(); changed = true; }
-#endif
 
   if (buttonEvent(buttons[BTN_MEASURE])) {
     // Na medição contínua mantém o valor anterior na tela, sem piscar.

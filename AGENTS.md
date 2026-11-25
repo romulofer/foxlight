@@ -35,7 +35,7 @@ Fotômetro refletido para fotografia analógica. Visão geral no
 
 | Caminho | Conteúdo |
 | ------- | -------- |
-| `src/foxlight/` | firmware; `board.h` (pinos), `exposure.h` e `battery.h` (matemática pura) |
+| `src/foxlight/` | firmware; `board.h` (pinos), `ui.h` (tela), `exposure.h` e `battery.h` |
 | `test/` | testes que rodam no PC |
 | `tools/` | sketches de diagnóstico e geradores de desenhos e da caixa |
 | `docs/` | guias |
@@ -55,6 +55,7 @@ imagens, moldes e gerbers. Mude a fonte e gere de novo.
 - `tools/diagramas/gerar.py` lê os `#define PIN_*` da D1 mini em `board.h`.
   Mudou pino, atualize desenhos, guia e README.
 - Lógica sem hardware vai para cabeçalhos testáveis, com teste em `test/`.
+- Mudou `ui.h`, rode `tools/tela/gerar.py`: ele falha se algo sair da tela.
 
 ## Cálculos
 
@@ -66,8 +67,9 @@ imagens, moldes e gerbers. Mude a fonte e gere de novo.
 
 ## Hardware
 
-- Revisões são **numeradas** (rev 1, rev 2, rev 3), nunca com letras. Mudança
-  que altera a placa de uma revisão publicada ou fabricada vira revisão nova.
+- Revisões são **numeradas** (rev 1, rev 2, rev 3), nunca com letras. Enquanto
+  uma revisão não for fabricada, as mudanças ficam nela, mesmo já publicada. Só
+  abrir revisão nova quando o dono pedir ou depois da fabricação.
 - Só componentes THT e módulos prontos, compráveis em lojas como o AliExpress.
   Não propor modificar componentes SMD de módulos.
 - O `kicad-cli` pode reescrever o `.kicad_pro`: guarde uma cópia, restaure e
@@ -75,6 +77,8 @@ imagens, moldes e gerbers. Mude a fonte e gere de novo.
 - Depois de mudar uma placa: ERC, DRC com paridade, e gerar de novo imagens,
   moldes 1:1 e gerbers.
 - Mudou a placa rev 2, atualize as medidas em `tools/caixa/gerar.py`.
+- A caixa é desenhada em coordenadas da placa (y para trás), espelhadas em
+  relação ao mundo: exportar e desenhar sempre por `mundo()`.
 - Ao posicionar peças no verso por script, conferir a posição dos pads: depois
   de virar o footprint, a rotação costuma precisar de 180°.
 
@@ -96,8 +100,9 @@ arduino-cli compile --fqbn esp32:esp32:XIAO_ESP32C6 src/foxlight
 # matemática
 g++ -std=c++11 -Wall -Wextra -o /tmp/exposure_test test/exposure_test.cpp && /tmp/exposure_test
 
-# desenhos (Pillow) e caixa (manifold3d, numpy, Pillow)
+# desenhos e tela (Pillow); caixa (manifold3d, numpy, Pillow, matplotlib)
 python3 tools/diagramas/gerar.py
+python3 tools/tela/gerar.py
 python3 tools/caixa/gerar.py
 
 # placas
