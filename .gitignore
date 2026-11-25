@@ -6,3 +6,4 @@ references/
 *.kicad_prl
 hardware/gerbers/
 __pycache__/
+*.rpt
