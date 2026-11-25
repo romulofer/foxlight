@@ -2,6 +2,7 @@ build/
 references/
 *.bin
 *.elf
-hardware/kicad/.mcp-backups/
+.mcp-backups/
 *.kicad_prl
 hardware/gerbers/
+__pycache__/

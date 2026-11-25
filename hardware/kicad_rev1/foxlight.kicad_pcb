@@ -4673,7 +4673,7 @@
 			)
 		)
 	)
-	(gr_text "rev A"
+	(gr_text "rev 1"
 		(at 133 137 0)
 		(layer "F.SilkS")
 		(uuid "78aa8a2e-85f7-4af1-867b-52d8fcb691e8")

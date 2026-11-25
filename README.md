@@ -1,23 +1,28 @@
 # foxlight
 
-Fotômetro refletido para fotografia analógica, com ESP8266. Você define dois
-valores entre **ISO**, **abertura** e **tempo**; o medidor calcula o terceiro.
+Fotômetro refletido para fotografia analógica. Você define dois valores entre
+**ISO**, **abertura** e **tempo**; o medidor calcula o terceiro.
+
+| Versão | Cérebro | Para quê | Documentação |
+| ------ | ------- | -------- | ------------ |
+| Protoboard e **rev 1** | Wemos D1 mini (ESP8266) | bancada, alimentação por USB | este arquivo e [montagem](docs/MONTAGEM.md) |
+| **rev 2** | Seeed XIAO ESP32C6 | compacto, sapata da câmera, bateria | [docs/REV2.md](docs/REV2.md) |
+
+O mesmo firmware serve as duas.
 
 > [!WARNING]
 > **Trabalho em progresso.** Use por sua conta e risco.
 >
 > | Parte | Situação |
 > | ----- | -------- |
-> | Firmware em protoboard | tela, sensor e botões funcionando |
+> | Firmware na D1 mini, em protoboard | tela, sensor e botões funcionando na primeira versão; o botão Modo (toque e toque longo) ainda não foi testado |
 > | Calibração contra um fotômetro de referência | **não feita**: não confie nas leituras para expor filme |
-> | Placa de circuito impresso (rev A) | **nunca fabricada**; passa no DRC, mas várias medidas de módulos são estimadas |
-> | Bateria, carregador e conversor | **nunca montados nem testados** |
+> | Firmware na XIAO ESP32C6 | **só compilado**, nunca rodou na placa |
+> | Placas rev 1 e rev 2 | **nunca fabricadas**; passam no DRC, mas várias medidas de módulos são estimadas |
+> | Caixa da rev 2 | **nunca impressa** |
+> | Bateria e alimentação | **nunca montadas nem testadas** |
 
-| Frente | Verso |
-| :----: | :---: |
-| ![Frente da placa: tela e botões](hardware/imagens/placa_top.png) | ![Verso da placa: sensor, D1 mini, bateria e alimentação](hardware/imagens/placa_bottom.png) |
-
-*Imagens geradas pelo KiCad. Os módulos sem modelo 3D aparecem só como contorno.*
+![Prévia da caixa da rev 2](hardware/caixa/previa.png)
 
 ## Recursos
 
@@ -27,8 +32,11 @@ valores entre **ISO**, **abertura** e **tempo**; o medidor calcula o terceiro.
 - Medição contínua enquanto o botão é segurado.
 - Faixa estendida: ajusta a sensibilidade do sensor em luz forte e fraca.
 - Lux e EV na tela; configurações salvas na memória.
+- Na rev 2: dorme sozinho, acorda no botão Medir e mostra a carga da bateria.
 
-## Peças
+## Peças (protoboard)
+
+Para a versão compacta, ver [docs/REV2.md](docs/REV2.md#peças).
 
 | Qtd | Peça |
 | --- | ---- |
@@ -37,10 +45,14 @@ valores entre **ISO**, **abertura** e **tempo**; o medidor calcula o terceiro.
 | 1 | OLED SSD1306 128x64 I2C, 0,96" |
 | 5 | Botões táteis 6x6 mm |
 
-Em protoboard, a alimentação é pelo USB da placa. A placa de circuito impresso
-tem lugar para bateria (ver [Placa](#placa-rev-a)).
+Em protoboard, a alimentação é pelo USB da placa. A placa rev 1 tem lugar para
+bateria (ver [Placa rev 1](#placa-rev-1)).
 
-## Ligações
+## Ligações (D1 mini)
+
+**Guia ilustrado, um passo de cada vez: [docs/MONTAGEM.md](docs/MONTAGEM.md).**
+
+[![Todas as ligações na protoboard](docs/montagem/00-tudo.png)](docs/MONTAGEM.md)
 
 | D1 mini | Liga em |
 | ------- | ------- |
@@ -51,10 +63,10 @@ tem lugar para bateria (ver [Placa](#placa-rev-a)).
 | D5 | botão **Medir** |
 | D6 | botão **+** |
 | D7 | botão **−** |
-| D3 | botão **Selecionar** |
+| D3 | botão **Modo** (Selecionar) |
 | D4 | botão **Calcular** |
 
-Cada botão fica entre o pino e o GND, sem resistor. Não segure **Selecionar**
+Cada botão fica entre o pino e o GND, sem resistor. Não segure **Modo**
 nem **Calcular** ao ligar: D3 e D4 definem o modo de boot do ESP8266.
 
 Confira a ordem dos pinos na serigrafia de cada módulo. No OLED usado aqui é
@@ -65,8 +77,9 @@ Confira a ordem dos pinos na serigrafia de cada módulo. No OLED usado aqui é
 | Botão | Ação |
 | ----- | ---- |
 | Medir | faz uma leitura; segurando, mede continuamente |
-| Calcular | escolhe a incógnita: tempo → abertura → ISO |
-| Selecionar | troca qual dos dois valores definidos será alterado |
+| Modo, toque (**Selecionar** na rev 1 e no guia da protoboard) | troca qual dos dois valores definidos será alterado |
+| Modo, segurando | escolhe a incógnita: tempo → abertura → ISO |
+| Calcular | o mesmo que segurar Modo (só existe com a D1 mini) |
 | + / − | altera o valor selecionado em 1/3 de stop; segurando, repete |
 
 Na tela, a linha invertida com `=` é a calculada e `>` marca a selecionada. A
@@ -78,6 +91,8 @@ Resultados fora da escala aparecem como `<1.0`, `>64`, `<6`, `>25600` ou
 correção de reciprocidade.
 
 ## Compilar e gravar
+
+D1 mini (para a XIAO ESP32C6, ver [docs/REV2.md](docs/REV2.md#gravar)):
 
 ```bash
 arduino-cli core install esp8266:esp8266 --additional-urls http://arduino.esp8266.com/stable/package_esp8266com_index.json
@@ -122,7 +137,7 @@ A fórmula `log2(lux / 2,5)`, comum em projetos com BH1750, é a de luz
 - O datasheet admite ±20% de variação entre sensores (cerca de 0,3 stop), e a
   resposta muda com o tipo de lâmpada.
 - Não mede flash.
-- O firmware ainda não mostra a carga da bateria.
+- A carga da bateria (só na rev 2) é uma estimativa pela tensão.
 
 ## Calibração
 
@@ -133,20 +148,26 @@ A fórmula `log2(lux / 2,5)`, comum em projetos com BH1750, é a de luz
    `CALIBRATION = 2^-N`; se mais lento, `2^N`. Em terços: 0,79 / 1,26.
 4. Edite `CALIBRATION` em `src/foxlight/foxlight.ino` e grave de novo.
 
-## Placa (rev A)
+## Placa rev 1
 
-Projeto KiCad em [`hardware/kicad/`](hardware/kicad/), dupla face, 75 x 100 mm,
+| Frente | Verso |
+| :----: | :---: |
+| ![Frente da placa: tela e botões](hardware/imagens/rev1_frente.png) | ![Verso da placa: sensor, D1 mini, bateria e alimentação](hardware/imagens/rev1_verso.png) |
+
+*Imagens geradas pelo KiCad. Os módulos sem modelo 3D aparecem só como contorno.*
+
+Projeto KiCad em [`hardware/kicad_rev1/`](hardware/kicad_rev1/), dupla face, 75 x 100 mm,
 só componentes THT. Frente: tela e botões. Verso: sensor, D1 mini, bateria,
 carregador e conversor. Gerbers em
-[`hardware/foxlight_revA_gerbers.zip`](hardware/foxlight_revA_gerbers.zip).
+[`hardware/foxlight_rev1_gerbers.zip`](hardware/foxlight_rev1_gerbers.zip).
 
-![Esquemático](hardware/imagens/esquematico.png)
+![Esquemático](hardware/imagens/rev1_esquematico.png)
 
 > [!CAUTION]
 > **Não mande fabricar sem conferir.** Contornos e furos do OLED, do GY-302 e do
 > MT3608 foram estimados por foto. Imprima os moldes
-> [da frente](hardware/imagens/molde_frente_1x1.pdf) e
-> [do verso](hardware/imagens/molde_verso_1x1.pdf) em escala 100% e encoste os
+> [da frente](hardware/imagens/rev1_molde_frente_1x1.pdf) e
+> [do verso](hardware/imagens/rev1_molde_verso_1x1.pdf) em escala 100% e encoste os
 > módulos no papel. Confira também o suporte da pilha.
 
 | Ref | Peça |
@@ -183,10 +204,11 @@ Baterias de lítio podem pegar fogo se carregadas ou ligadas de forma errada.
 ## Estrutura
 
 ```
-src/foxlight/     firmware (foxlight.ino) e matemática de exposição (exposure.h)
+src/foxlight/     firmware (foxlight.ino), pinos (board.h), exposição e bateria
 test/             testes da matemática, rodam no PC
-tools/            scanner I2C e teste de botões
-hardware/         projeto KiCad, gerbers, imagens e moldes 1:1
+docs/             guia de montagem na protoboard e documentação da rev 2
+tools/            scanner I2C, teste de botões, geradores dos desenhos e da caixa
+hardware/         projetos KiCad, gerbers, caixa 3D, imagens e moldes 1:1
 ```
 
 ## Referências
@@ -200,6 +222,7 @@ repositório.
 | [m3_lightmeter](https://github.com/ScaredCube/m3_lightmeter) | pares de exposição como deslocamento em passos de stop |
 | [oleksiikutuzov/flipperzero-lightmeter](https://github.com/oleksiikutuzov/flipperzero-lightmeter) | uso do BH1750 |
 | [vpominchuk/lightmeter](https://github.com/vpominchuk/lightmeter) | referência de fotômetro com BH1750 |
+| [Seeed-Studio/OPL_Kicad_Library](https://github.com/Seeed-Studio/OPL_Kicad_Library) | posição dos pinos e dos pads de bateria da XIAO |
 
 O firmware usa as bibliotecas [BH1750](https://github.com/claws/BH1750),
 Adafruit GFX e Adafruit SSD1306, cada uma sob a própria licença.

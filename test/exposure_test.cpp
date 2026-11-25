@@ -1,8 +1,9 @@
-// Testes de src/foxlight/exposure.h no PC:
+// Testes de src/foxlight/exposure.h e battery.h no PC:
 //   g++ -std=c++11 -Wall -Wextra -o /tmp/exposure_test test/exposure_test.cpp && /tmp/exposure_test
 #include <cstdio>
 #include <cstring>
 #include "../src/foxlight/exposure.h"
+#include "../src/foxlight/battery.h"
 
 static int failures = 0;
 
@@ -66,6 +67,16 @@ int main() {
       formatField(b, sizeof b, (Field)f, i);
       CHECK(strlen(b) <= 7);
     }
+
+  // Carga da bateria: limites, ponto intermediário e curva sempre crescente.
+  CHECK(batteryPercent(3000) == 0);   CHECK(batteryPercent(4300) == 100);
+  CHECK(batteryPercent(3300) == 0);   CHECK(batteryPercent(4200) == 100);
+  CHECK(batteryPercent(3750) == 30);  CHECK(batteryPercent(3850) == 55);
+  for (int mv = 3000, last = 0; mv <= 4300; mv++) {
+    int p = batteryPercent(mv);
+    CHECK(p >= last && p <= 100);
+    last = p;
+  }
 
   if (failures) { printf("%d falha(s)\n", failures); return 1; }
   printf("todos os testes passaram\n");
