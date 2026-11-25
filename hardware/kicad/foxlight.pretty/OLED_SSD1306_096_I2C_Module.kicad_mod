@@ -1,0 +1,83 @@
+(footprint "OLED_SSD1306_096_I2C_Module"
+  (version 20241229)
+  (generator "kicad-mcp")
+  (generator_version "9.0")
+  (layer "F.Cu")
+  (descr "Modulo OLED 0,96 pol. SSD1306 I2C, 4 pinos VCC GND SCL SDA, 27,3 x 27,8 mm. Contorno ESTIMADO (foto e valores tipicos): medir o modulo.")
+
+  (property "Reference" "REF**" (at 0 22 0)
+    (layer "F.SilkS")
+    (uuid "87e9be52-30f3-40a2-b926-a7515484d3d5")
+    (effects (font (size 1 1) (thickness 0.15)))
+  )
+  (property "Value" "OLED_SSD1306_096_I2C_Module" (at 0 18 0)
+    (layer "F.Fab")
+    (uuid "ffa33891-0155-4427-a7e5-ad5d791e7ea8")
+    (effects (font (size 1 1) (thickness 0.15)))
+  )
+  (property "Datasheet" "" (at 0 0 0)
+    (layer "F.Fab")
+    (uuid "ed423809-0ee0-40a4-be1a-b6aa2a23c110")
+    (effects (font (size 1 1) (thickness 0.15)))
+  )
+
+  (fp_rect
+    (start -13.9 -2.2)
+    (end 13.9 26.1)
+    (stroke (width 0.05) (type default))
+    (fill none)
+    (layer "F.CrtYd")
+    (uuid "c0a64b3f-9b69-4433-946c-1b40bc70917c")
+  )
+
+  (fp_rect
+    (start -13.65 -1.95)
+    (end 13.65 25.85)
+    (stroke (width 0.12) (type default))
+    (fill none)
+    (layer "F.SilkS")
+    (uuid "3598411c-1180-43d1-b0b2-9c29e0bf78a0")
+  )
+
+  (fp_rect
+    (start -13.65 -1.95)
+    (end 13.65 25.85)
+    (stroke (width 0.1) (type default))
+    (fill none)
+    (layer "F.Fab")
+    (uuid "a38946eb-6c45-4503-896f-b3eeb5b4367c")
+  )
+
+  (pad "1" thru_hole rect
+    (at -3.81 0)
+    (size 1.7 1.7)
+    (drill 1)
+    (layers "*.Cu" "*.Mask")
+    (uuid "62b438f0-1d37-401d-b382-f41fc12dd8f2")
+  )
+
+  (pad "2" thru_hole circle
+    (at -1.27 0)
+    (size 1.7 1.7)
+    (drill 1)
+    (layers "*.Cu" "*.Mask")
+    (uuid "5a926812-7d17-406a-b1e6-b17865643e56")
+  )
+
+  (pad "3" thru_hole circle
+    (at 1.27 0)
+    (size 1.7 1.7)
+    (drill 1)
+    (layers "*.Cu" "*.Mask")
+    (uuid "46d20ad3-5c7d-482a-9dee-2705f591e5f1")
+  )
+
+  (pad "4" thru_hole circle
+    (at 3.81 0)
+    (size 1.7 1.7)
+    (drill 1)
+    (layers "*.Cu" "*.Mask")
+    (uuid "00d7a9a0-e04c-41e3-9c41-4869f087c3a5")
+  )
+
+)

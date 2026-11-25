@@ -1,0 +1,7 @@
+build/
+references/
+*.bin
+*.elf
+hardware/kicad/.mcp-backups/
+*.kicad_prl
+hardware/gerbers/
